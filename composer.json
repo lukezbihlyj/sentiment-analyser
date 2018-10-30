@@ -1,4 +1,5 @@
 {
+    "name": "lukezbihlyj/sentiment-analyser",
     "autoload": {
         "psr-4": {
             "SentimentAnalyser\\": "lib/"
