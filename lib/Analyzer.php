@@ -8,8 +8,8 @@
  *
  * Contributors: Dylan Auty (regex, refactoring and logic)
  *
- *  
- * This program is free software: you can redistribute it and/or modify it under the terms of the 
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
  *
@@ -18,7 +18,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *  
+ *
  * USAGE:
  *
  * include ('sentiment_analyser.class.php');
@@ -29,26 +29,26 @@
  * var_dump($score);
  *
  * CONCEPT:
- *  
+ *
  * This class serves three purposes:
  * 1) Estimate the sentiment for a string based on emotion words, booster words, emoticons and polarity changers
  * 2) Allow you to save analysed data into positive, negative or neutral datasets
  * 3) Identify if we have any phrase matches on previously analysed positive, negative and neutral phrases
  *
- * Should there be any high quality phrase matches, it would take precedent over the sentiment analysis and return 
+ * Should there be any high quality phrase matches, it would take precedent over the sentiment analysis and return
  * the phrase match rating instead.
  *
- * 
+ *
  * SENTIMENT ANALYSIS
  * Strings are broken into tokenised arrays of single words. These words are analysed against TXT files that contain
  * emotion words with ratings, emoticons with ratings, booster words with ratings and possible polarity changers.
  *
  * A score is then calculated based on this analyse and this forms the "Sentiment analysis score".
  *
- * 
+ *
  * PHRASE ANALYSIS
  *
- * This function is key to identifying whether the phrase in questions can be 
+ * This function is key to identifying whether the phrase in questions can be
  * compared to phrases that we have analysed and stored before. It uses Levenshtein
  * distance to calculate distance between 4,5,6,7,8,9 and 10 word length phrases against
  * the dataset we already have. We also make use of PHP's similar_text to double verify proximity.
@@ -61,13 +61,14 @@
  * 3) Phrases are matched against positive, negative and neutral phrases in the relevant TXT files
  * 4) Only matches that meet the minimum levenshtein_min_distance and similiarity_min_distance are kept
  *
- * 
  *
- * 
+ *
+ *
 */
 
+namespace SentimentAnalysis;
 
-class SentimentAnalysis {
+class Analyzer {
 
     private $mention = array();
     private $original_text; /* original string to be analysed */
@@ -118,14 +119,14 @@ class SentimentAnalysis {
 
 
     /**
-     * Set the minimum acceptable levenshtein distance 
+     * Set the minimum acceptable levenshtein distance
      * @var int
      */
     private $levenshtein_min_distance = 15;
 
 
     /**
-     * Set the minimum acceptable similiarity distance 
+     * Set the minimum acceptable similiarity distance
      * @var floatval
      */
     private $similiarity_min_distance = 65.00;
@@ -145,7 +146,7 @@ class SentimentAnalysis {
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/NegatingWordList.txt","polarize_array",false);
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/IdiomLookupTable.txt","idion_array",true);
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/EmoticonLookupTable.txt","emoticon_array",true);
-                
+
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/negative_data.txt","bad_phrases",true);
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/positive_data.txt","good_phrases",true);
                 $this->import_lexicons(dirname(dirname(__FILE__))."/data/neutral_data.txt","neutral_phrases",true);
@@ -211,7 +212,7 @@ class SentimentAnalysis {
          * Remove all stop words from the string
          *
          * @todo This needs to be broken out into a standalone text file
-         * 
+         *
          * @param  array    $tokenised_array Tokenised array of the original string
          * @return array
          */
@@ -225,7 +226,7 @@ class SentimentAnalysis {
                     }
                     preg_match('/(\s+|^)@\S+/',$val,$match);
                     if (isset($match[0])) {
-                        unset($tokenised_array[$key]);   
+                        unset($tokenised_array[$key]);
                     }
                 }
             }
@@ -245,7 +246,7 @@ class SentimentAnalysis {
          * Check if there are emoticons in the string
          *
          * @todo  We need a way to check for non-utf8 emoticons, such as those used on twitter
-         * 
+         *
          * @return void
          */
         private function analyse_emoticons() {
@@ -272,12 +273,12 @@ class SentimentAnalysis {
 
         /**
          * Analyse single words against the emotion words in the TXT file
-         * 
+         *
          * We analyse each individual word against those in the emotion TXT file. We then
          * identify if there is a "booster" word before it and apply the relevant rating for that
          * booster word. We also identify if there are any "polarity changers" that could reverse
          * the rating. For example "I am *not* happy".
-         * 
+         *
          * @return void
          */
         private function analyse_single_words() {
@@ -308,7 +309,7 @@ class SentimentAnalysis {
                         $this->output_mention[$i]['rating'] = $rating;
                         $this->output_mention[$i]['type'] = 'single_word';
                         $this->number_sentiment_words++;
-                   
+
 
                         /* LOOK FOR ENHANCERS */
                         // check if there are any enhancers before (or after) the word
@@ -358,7 +359,7 @@ class SentimentAnalysis {
         /**
          * Analyse phrases against stored phrases
          *
-         * This function is key to identifying whether the phrase in questions can be 
+         * This function is key to identifying whether the phrase in questions can be
          * compared to phrases that we have analysed and stored before. It uses Levenshtein
          * distance to calculate distance between 4,5,6,7,8,9 and 10 word length phrases against
          * the dataset we already have. We also make use of PHP's similar_text to double verify proximity.
@@ -371,7 +372,7 @@ class SentimentAnalysis {
          * 3) Phrases are matched against positive, negative and neutral phrases in the relevant TXT files
          * 4) Only matches that meet the minimum levenshtein_min_distance and similiarity_min_distance are kept
          *
-         * 
+         *
          * @return void
          */
         private function analyse_phrases() {
@@ -403,18 +404,18 @@ class SentimentAnalysis {
                 if ($i == 8) { $a = array_map( function($a) { return $a[1].' '.$a[2].' '.$a[3].' '.$a[4].' '.$a[5].' '.$a[6].' '.$a[7].' '.$a[8]; }, $matches ); }
                 if ($i == 9) { $a = array_map( function($a) { return $a[1].' '.$a[2].' '.$a[3].' '.$a[4].' '.$a[5].' '.$a[6].' '.$a[7].' '.$a[8].' '.$a[9]; }, $matches ); }
                 if ($i == 10) { $a = array_map( function($a) { return $a[1].' '.$a[2].' '.$a[3].' '.$a[4].' '.$a[5].' '.$a[6].' '.$a[7].' '.$a[8].' '.$a[9].' '.$a[10]; }, $matches ); }
-                
+
 
                 $preg_array[$i]['matches'] = $a;
             }
-            
+
             krsort($preg_array);
             unset($preg_array[2]);
             unset($preg_array[3]);
             unset($preg_array[4]);
             $i = count($this->phrase_proximity);
             $sorted_array = array();
-            
+
 
             foreach ($preg_array as $key => $phrase_array) {
 
@@ -431,16 +432,16 @@ class SentimentAnalysis {
                             similar_text($mention_word, $word['word'],$sim_percent);
                             if ($sim_percent >= $this->similiarity_min_distance) {
                                 $i++;
-                            
+
                                 $this->phrase_proximity[$i]['matches_from'] = $mention_word;
                                 $this->phrase_proximity[$i]['matches_with'] = $word['word'];
                                 $this->phrase_proximity[$i]['rating_modifier'] = $rating;
                                 $this->phrase_proximity[$i]['levenshtein'] = $levenshtein;
                                 $this->phrase_proximity[$i]['similarity'] = $sim_percent;
                             }
-                             
+
                         }
-                        
+
                     }
                 }
 
@@ -454,7 +455,7 @@ class SentimentAnalysis {
                     foreach ($phrase_array['matches'] as $mention_word) {
                         $levenshtein = levenshtein(trim($mention_word), trim($word['word']));
                         if ($levenshtein <= $this->levenshtein_min_distance) {
-                            
+
                             similar_text($mention_word, $word['word'],$sim_percent);
                             if ($sim_percent >= $this->similiarity_min_distance) {
                                 $i++;
@@ -465,9 +466,9 @@ class SentimentAnalysis {
                                 $this->phrase_proximity[$i]['similarity'] = $sim_percent;
 
                             }
-                           
+
                         }
-                         
+
                     }
                 }
                 foreach ($this->neutral_phrases as $key => $word) {
@@ -479,7 +480,7 @@ class SentimentAnalysis {
                 foreach ($phrase_array['matches'] as $mention_word) {
                     $levenshtein = levenshtein($mention_word, $word['word']);
                     if ($levenshtein <= $this->levenshtein_min_distance) {
-                        
+
                         similar_text($mention_word, $word['word'],$sim_percent);
                         if ($sim_percent >= $this->similiarity_min_distance) {
                             $i++;
@@ -490,9 +491,9 @@ class SentimentAnalysis {
                             $this->phrase_proximity[$i]['similarity'] = $sim_percent;
 
                         }
-                       
+
                     }
-                     
+
                 }
             }
 
@@ -502,11 +503,11 @@ class SentimentAnalysis {
             /**
              * We now try find the best phrase match and bring that to the top of the array. Everything
              * else doesnt matter at this point, we just want the best match.
-             * 
+             *
              */
             foreach ($this->phrase_proximity as $key => $val) {
                 $lev = $val['levenshtein'];
-                
+
                 $tmp_array = $val;
 
                 if ($lev < $this->phrase_proximity[1]['levenshtein']) {
@@ -543,7 +544,7 @@ class SentimentAnalysis {
 
                     $this->alter_sentiment($rating,0); // increase/decreate sentiment score
                 }
-                
+
 
 
 
@@ -573,7 +574,7 @@ class SentimentAnalysis {
          * Display a semi-decent set of important data
          *
          * @todo  Needs love.
-         * 
+         *
          * @return string
          */
         public function return_sentiment_calculations() {
@@ -680,7 +681,7 @@ class SentimentAnalysis {
 
         /**
          * Return the min Levenshtein submit distance
-         * 
+         *
          * @return floatval
          */
         public function return_levenshtein_min_submit_distance() {
@@ -694,7 +695,7 @@ class SentimentAnalysis {
         public function return_sentiment_rating() {
 
             /**
-             * If this is a phrase match, return the phrase matches rating instead of the sentiment rating 
+             * If this is a phrase match, return the phrase matches rating instead of the sentiment rating
              *
              */
             foreach ($this->phrase_proximity as $key => $val) {
@@ -833,21 +834,21 @@ class SentimentAnalysis {
         public function import_sentiment_custom($text,$rating) {
 
             if ($rating >= $this->min_neutral && $rating <= $this->max_neutral) {
-                
+
                 $fh = fopen(dirname(__FILE__)."/data/neutral_data.txt",'a+');
             } else if ($rating > $this->max_neutral) {
-                
+
                 $check = dirname(__FILE__)."/data/positive_data.txt";
                 $fh = fopen($check,'a+');
             } else {
-                
+
                 $fh = fopen(dirname(__FILE__)."/data/negative_data.txt",'a+');
             }
             fwrite($fh,"\n\r".$text."\t".$rating);
             fclose($fh);
 
         }
-        
+
 }
 ?>
 
