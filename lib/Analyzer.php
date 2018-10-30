@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Sentiment Analysis PHP Class
  *
@@ -66,10 +67,10 @@
  *
 */
 
-namespace SentimentAnalysis;
+namespace SentimentAnalyser;
 
-class Analyzer {
-
+class Analyser
+{
     private $mention = array();
     private $original_text; /* original string to be analysed */
     private $output_mention = array(); //variable to display the processed mention with styling
